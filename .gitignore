@@ -1,6 +1,7 @@
 # built binary (built via [[build]] on install, don't commit)
-spotify
-spotify.exe
+# root binary only — not cmd/spotify dir
+/spotify
+/spotify.exe
 
 # Go build cache
 *.o
