@@ -1,0 +1,74 @@
+id = "dev.spotify-herdr"
+name = "Spotify for Herdr"
+version = "0.2.0"
+min_herdr_version = "0.8.0"
+description = "Control Spotify from Herdr - Go binary, zero-setup play/pause/next/prev (local), search/queue/save gated behind Spotify Web API PKCE"
+platforms = ["linux", "macos", "windows"]
+
+[[build]]
+command = ["go", "build", "-o", "spotify", "./cmd/spotify"]
+
+[[actions]]
+id = "auth"
+title = "Spotify: Authenticate"
+description = "Login to Spotify via browser (PKCE, one-time)"
+contexts = ["workspace"]
+command = ["./spotify", "auth"]
+
+[[actions]]
+id = "search-play"
+title = "Spotify: Search & Play (requires auth)"
+description = "Search tracks and play (gated: needs Spotify auth)"
+contexts = ["workspace"]
+command = ["./spotify", "search"]
+
+[[actions]]
+id = "toggle"
+title = "Spotify: Play / Pause"
+description = "Toggle playback (zero setup on macOS/Linux, API fallback when authenticated)"
+contexts = ["workspace"]
+command = ["./spotify", "toggle"]
+
+[[actions]]
+id = "next"
+title = "Spotify: Next Track"
+description = "Next track (zero setup on macOS/Linux)"
+contexts = ["workspace"]
+command = ["./spotify", "next"]
+
+[[actions]]
+id = "prev"
+title = "Spotify: Previous Track"
+description = "Previous track (zero setup on macOS/Linux)"
+contexts = ["workspace"]
+command = ["./spotify", "prev"]
+
+[[actions]]
+id = "queue"
+title = "Spotify: Show Queue (requires auth)"
+description = "Show queue (gated: needs Spotify auth)"
+contexts = ["workspace"]
+command = ["./spotify", "queue"]
+
+[[actions]]
+id = "save"
+title = "Spotify: Save Current Track to Library (requires auth)"
+description = "Save (♥) currently playing track to Your Library (gated: needs auth)"
+contexts = ["workspace"]
+command = ["./spotify", "save"]
+
+[[panes]]
+id = "player"
+title = "Spotify Player"
+description = "Interactive TUI - play/pause/next/search/volume/queue"
+placement = "popup"
+width = "80%"
+height = 18
+command = ["./spotify", "pane"]
+
+[[panes]]
+id = "now-playing"
+title = "Spotify Now Playing"
+description = "Compact now-playing overlay"
+placement = "overlay"
+command = ["./spotify", "nowplaying"]

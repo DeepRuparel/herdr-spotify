@@ -1,0 +1,29 @@
+# built binary (built via [[build]] on install, don't commit)
+spotify
+spotify.exe
+
+# Go build cache
+*.o
+*.a
+
+# Spotify user secrets — stored outside repo in HERDR_PLUGIN_CONFIG_DIR
+# but ignore if ever created locally by mistake
+config.json
+token.json
+token.json.bak
+.env
+
+# Node legacy (kept for backup, remove if fully Go)
+node_modules/
+package-lock.json
+src/node_modules/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Herdr plugin state (if you test locally)
+.state/
