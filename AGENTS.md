@@ -32,4 +32,5 @@ go build -o spotify ./cmd/spotify         # must rerun manually — [[build]] on
 - `toggle/next/prev/volume` try API first if token exists, fallback to `local` on all platforms incl. Windows SMTC master (`main.go:82` `tryAPI`). `search/queue/save` hard-gate on `hasAuth()` and error immediately.
 - `go.mod` is Go 1.27, zero external deps. `herdr-plugin.toml` version bump manually on release (now `0.2.x` with Windows volume).
 - No tests/CI/lint config in repo — `go vet` is the check. No `opencode.json` custom instructions beyond `{"$schema":...}`.
+- Agent setup: `herdr plugin action invoke dev.spotify-herdr.setup-keys` (or `./spotify setup-keys`) queries `herdr --help` `Config:` and appends `[[keys.command]]` idempotently; see `docs/AGENT_SETUP.md` and `internal/herdrconfig/herdrconfig.go:11`.
 - Add `herdr-plugin` topic on GitHub for marketplace discovery.

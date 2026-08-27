@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"herdr-spotify/internal/config"
+	"herdr-spotify/internal/herdrconfig"
 	"herdr-spotify/internal/local"
 	"herdr-spotify/internal/spotify"
 	"io"
@@ -48,6 +49,10 @@ func main() {
 		err = runPane()
 	case "nowplaying":
 		err = runNowPlaying()
+	case "setup-keys":
+		err = runSetupKeys(args)
+	case "config-path":
+		err = runConfigPath()
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %s\n", cmd)
 		usage()
@@ -72,7 +77,9 @@ func usage() {
   search [query]    search & play (needs auth)
   queue             show queue (needs auth)
   pane              interactive TUI (space toggle, n next, p prev, +/- vol, / search*, l queue*, L save*)
-  nowplaying        compact now-playing loop`)
+  nowplaying        compact now-playing loop
+  setup-keys        add keybindings to herdr config.toml (platform independent)
+  config-path       print herdr config.toml path`)
 }
 
 // helpers
@@ -570,4 +577,47 @@ func runPane() error {
 			fmt.Println("keys: space toggle, n next, p prev, q quit, / search, l queue, L save")
 		}
 	}
+}
+
+func runConfigPath() error {
+	p, err := herdrconfig.HerdrConfigPath()
+	if err != nil {
+		return err
+	}
+	fmt.Println(p)
+	return nil
+}
+
+func runSetupKeys(args []string) error {
+	dryRun := len(args) > 0 && (args[0] == "--dry-run" || args[0] == "--check")
+	path, err := herdrconfig.HerdrConfigPath()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Herdr config: %s\n", path)
+	if dryRun {
+		fmt.Println("(dry-run, not writing)")
+		return nil
+	}
+	addedPath, added, err := herdrconfig.SetupKeys()
+	if err != nil {
+		return err
+	}
+	if added == 0 {
+		fmt.Printf("✓ Keybindings already present in %s\n", addedPath)
+	} else {
+		fmt.Printf("✓ Added %d keybindings to %s\n", added, addedPath)
+		for _, k := range []string{"prefix+ctrl+p toggle", "prefix+ctrl+n next", "prefix+ctrl+o prev", "prefix+ctrl+s TUI", "prefix+ctrl+f search*", "prefix+ctrl+q queue*", "prefix+ctrl+l save*"} {
+			fmt.Printf("  - %s\n", k)
+		}
+	}
+	// reload
+	if err := herdrconfig.ReloadConfig(); err != nil {
+		fmt.Printf("Note: herdr server reload-config failed (is Herdr running?): %v\n", err)
+		fmt.Println("Run: herdr server reload-config  (or restart Herdr)")
+	} else {
+		fmt.Println("✓ herdr server reload-config applied")
+	}
+	_ = path
+	return nil
 }

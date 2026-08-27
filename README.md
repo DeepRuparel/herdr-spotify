@@ -23,7 +23,10 @@ herdr plugin action invoke dev.spotify-herdr.prev
 # TUI (keys: space toggle, n next, p prev, +/- vol, q quit)
 herdr plugin pane open --plugin dev.spotify-herdr --entrypoint player
 
-# Keybindings — add to ~/.config/herdr/config.toml then herdr server reload-config
+# Keybindings — no manual copy needed, let the agent do it:
+# herdr plugin action invoke dev.spotify-herdr.setup-keys   (or ./spotify setup-keys)
+# This queries herdr config path (mac ~/.config/herdr/config.toml, Windows %APPDATA%/herdr/config.toml) and appends idempotently.
+# Manual alternative:
 # [[keys.command]] key="prefix+ctrl+p" type="plugin_action" command="dev.spotify-herdr.toggle"
 # [[keys.command]] key="prefix+ctrl+n" type="plugin_action" command="dev.spotify-herdr.next"
 # [[keys.command]] key="prefix+ctrl+o" type="plugin_action" command="dev.spotify-herdr.prev"

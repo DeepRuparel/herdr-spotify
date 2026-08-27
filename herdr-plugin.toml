@@ -1,6 +1,6 @@
 id = "dev.spotify-herdr"
 name = "Spotify for Herdr"
-version = "0.2.1"
+version = "0.2.2"
 min_herdr_version = "0.8.0"
 description = "Control Spotify from Herdr - Go binary, zero-setup play/pause/next/prev/volume (master on Windows) local, search/queue/save gated behind Spotify Web API PKCE"
 platforms = ["linux", "macos", "windows"]
@@ -66,6 +66,20 @@ title = "Spotify: Save Current Track to Library (requires auth)"
 description = "Save (♥) currently playing track to Your Library (gated: needs auth)"
 contexts = ["workspace"]
 command = ["./spotify", "save"]
+
+[[actions]]
+id = "setup-keys"
+title = "Spotify: Setup Herdr Keybindings"
+description = "Add Spotify keybindings to herdr config.toml (platform independent, queries path via herdr --help)"
+contexts = ["workspace"]
+command = ["./spotify", "setup-keys"]
+
+[[actions]]
+id = "config-path"
+title = "Spotify: Show Herdr Config Path"
+description = "Print herdr config.toml path (queries HERDR_CONFIG_PATH/herdr --help)"
+contexts = ["workspace"]
+command = ["./spotify", "config-path"]
 
 [[panes]]
 id = "player"
