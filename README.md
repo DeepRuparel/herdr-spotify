@@ -22,8 +22,12 @@ herdr plugin action invoke dev.spotify-herdr.prev
 
 # TUI (keys: space toggle, n next, p prev, +/- vol, q quit)
 herdr plugin pane open --plugin dev.spotify-herdr --entrypoint player
-# keybindings (prefix = ctrl+b):
-# prefix+ctrl+p toggle, prefix+ctrl+n next, prefix+ctrl+o prev, prefix+ctrl+s TUI
+
+# Keybindings — add to ~/.config/herdr/config.toml then herdr server reload-config
+# [[keys.command]] key="prefix+ctrl+p" type="plugin_action" command="dev.spotify-herdr.toggle"
+# [[keys.command]] key="prefix+ctrl+n" type="plugin_action" command="dev.spotify-herdr.next"
+# [[keys.command]] key="prefix+ctrl+o" type="plugin_action" command="dev.spotify-herdr.prev"
+# [[keys.command]] key="prefix+ctrl+s" type="shell" command="herdr plugin pane open --plugin dev.spotify-herdr --entrypoint player"
 ```
 
 ## Gated features (search / queue / save ♥) — one-time 2-min setup

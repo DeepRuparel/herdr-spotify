@@ -20,7 +20,7 @@ go build -o spotify ./cmd/spotify         # must rerun manually — [[build]] on
 ## Herdr plugin flow (non-obvious)
 - `herdr plugin link /path/to/herdr-spotify` for local dev; `herdr plugin install DeepRuparel/herdr-spotify` clones to Herdr-managed store and runs `[[build]]` (`herdr-plugin.toml:8` — dual `spotify` for linux/macos, `spotify.exe` + copy for windows). Link does NOT run build.
 - Actions/panes run detached with **no stdin** — interactive `auth` will fail via `herdr plugin action invoke` unless `config.json` pre-exists. For prompt, run directly in a Herdr pane: `HERDR_PLUGIN_CONFIG_DIR=$(herdr plugin config-dir dev.spotify-herdr) ./spotify auth`
-- `herdr plugin pane open --plugin dev.spotify-herdr --entrypoint player` works from shell, but a `keys.command` popup that runs that CLI flashes (exits instantly). Run binary directly in popup: `command = "/abs/path/spotify pane"` (Windows: `spotify.exe pane`, master volume via `SendInput`).
+- `herdr plugin pane open --plugin dev.spotify-herdr --entrypoint player` works from shell; for keybinding use `type="shell" command="herdr plugin pane open --plugin dev.spotify-herdr --entrypoint player"` (not `type="popup"` with absolute `/path/spotify pane` — popup flashes and is per-machine absolute). Actions use `type="plugin_action" command="dev.spotify-herdr.toggle"` etc. (portable, `herdr server reload-config` after edit).
 - Config/token live **outside repo** at `$(herdr plugin config-dir dev.spotify-herdr)/{config.json,token.json}` (0600, Windows `%APPDATA%`). Never commit; `.gitignore:3` ignores root `/spotify`/`/spotify.exe` only — not `cmd/spotify/` (was bug at `/spotify` vs `spotify`).
 
 ## Secrets / env
