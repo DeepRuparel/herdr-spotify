@@ -1,12 +1,22 @@
 id = "dev.spotify-herdr"
 name = "Spotify for Herdr"
-version = "0.2.0"
+version = "0.2.1"
 min_herdr_version = "0.8.0"
-description = "Control Spotify from Herdr - Go binary, zero-setup play/pause/next/prev (local), search/queue/save gated behind Spotify Web API PKCE"
+description = "Control Spotify from Herdr - Go binary, zero-setup play/pause/next/prev/volume (master on Windows) local, search/queue/save gated behind Spotify Web API PKCE"
 platforms = ["linux", "macos", "windows"]
 
 [[build]]
 command = ["go", "build", "-o", "spotify", "./cmd/spotify"]
+platforms = ["linux", "macos"]
+
+[[build]]
+command = ["go", "build", "-o", "spotify.exe", "./cmd/spotify"]
+platforms = ["windows"]
+
+# Ensure ./spotify also exists on Windows for manifest's ./spotify commands (PATHEXT)
+[[build]]
+command = ["cmd", "/c", "copy spotify.exe spotify"]
+platforms = ["windows"]
 
 [[actions]]
 id = "auth"

@@ -84,12 +84,10 @@ func tryAPI(apiFn func() error, localFn func() (string, error)) error {
 		if err := apiFn(); err == nil {
 			return nil
 		} else {
-			// fallback to local on darwin/linux
-			if runtime.GOOS != "windows" {
-				if msg, lerr := localFn(); lerr == nil {
-					fmt.Println(msg + " (API fallback)")
-					return nil
-				}
+			// fallback to local on all platforms (windows now has SMTC master volume)
+			if msg, lerr := localFn(); lerr == nil {
+				fmt.Println(msg + " (API fallback)")
+				return nil
 			}
 			return err
 		}
@@ -107,10 +105,10 @@ func tryAPI(apiFn func() error, localFn func() (string, error)) error {
 func runAuth() error {
 	clientID := config.GetClientID()
 	if clientID == "" {
-		fmt.Println("\nNo Spotify Client ID found.\n")
+		fmt.Println("\nNo Spotify Client ID found.")
 		fmt.Println("1. Go to https://developer.spotify.com/dashboard -> Create App")
 		fmt.Printf("2. Add Redirect URI: %s\n", config.RedirectURI)
-		fmt.Println("3. Copy the Client ID\n")
+		fmt.Println("3. Copy the Client ID")
 		fmt.Print("Paste Client ID: ")
 		reader := bufio.NewReader(os.Stdin)
 		line, _ := reader.ReadString('\n')

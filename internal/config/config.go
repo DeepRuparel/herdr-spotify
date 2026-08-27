@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 const RedirectURI = "http://127.0.0.1:43841/callback"
@@ -27,8 +28,13 @@ func ConfigDir() string {
 	if d := os.Getenv("HERDR_PLUGIN_CONFIG_DIR"); d != "" {
 		return d
 	}
+	if runtime.GOOS == "windows" {
+		if dir, err := os.UserConfigDir(); err == nil && dir != "" {
+			return filepath.Join(dir, "herdr", "plugins", "config", "dev.spotify-herdr")
+		}
+	}
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".config", "herdr", "plugins", "dev.spotify-herdr")
+	return filepath.Join(home, ".config", "herdr", "plugins", "config", "dev.spotify-herdr")
 }
 
 func ConfigPath() string { return filepath.Join(ConfigDir(), "config.json") }

@@ -1,6 +1,6 @@
 # Spotify for Herdr (Go)
 
-Control Spotify from Herdr — **zero-setup** play/pause/next/prev on macOS/Linux (AppleScript / playerctl), plus gated search/queue/save ♥ via Spotify Web API PKCE. Controls your existing Premium Connect device (no audio streamed to terminal). Works on macOS/Linux/Windows.
+Control Spotify from Herdr — **zero-setup** play/pause/next/prev/volume (master on Windows) on macOS/Linux/Windows (AppleScript / playerctl / SMTC SendInput), plus gated search/queue/save ♥ via Spotify Web API PKCE. Controls your existing Premium Connect device (no audio streamed to terminal). Works on macOS/Linux/Windows.
 
 ## Install
 
@@ -59,7 +59,7 @@ herdr plugin action invoke dev.spotify-herdr.save
 
 ## Stack
 
-Go 1.22+ single binary (`go build -o spotify ./cmd/spotify`). Local controls: macOS `osascript` (Spotify.app), Linux `playerctl`. API: `accounts.spotify.com` PKCE + `api.spotify.com/v1`. Herdr host: `herdr-plugin.toml` actions/panes, `HERDR_PLUGIN_CONFIG_DIR`.
+Go 1.22+ single binary (`go build -o spotify ./cmd/spotify`, Windows `spotify.exe` via `[[build]]`). Local controls: macOS `osascript` (Spotify.app), Linux `playerctl`, Windows SMTC `SendInput` `VK_MEDIA_*` / `VK_VOLUME_*` (system master volume). API: `accounts.spotify.com` PKCE + `api.spotify.com/v1`. Herdr host: `herdr-plugin.toml` actions/panes, `HERDR_PLUGIN_CONFIG_DIR` (`%APPDATA%/herdr/plugins/config` on Windows).
 
 ## Publish
 
