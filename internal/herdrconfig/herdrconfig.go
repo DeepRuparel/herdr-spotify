@@ -155,7 +155,7 @@ func ReloadConfig() error {
 
 // SetupControlCenter adds sidebar rows for the bottom-corner control center.
 // It is idempotent: if $spotify_track is already in the file, nothing is added.
-// Returns path and whether it added.
+// For dedicated single space, we use rows_by_agent so only the spotify agent shows track/controls.
 func SetupControlCenter() (path string, added bool, err error) {
 	path, err = HerdrConfigPath()
 	if err != nil {
@@ -175,13 +175,12 @@ func SetupControlCenter() (path string, added bool, err error) {
 	if strings.Contains(existing, "$spotify_track") {
 		return path, false, nil
 	}
-	// Append sidebar config for control center under agents pane (bottom corner)
-	// Keep user's existing rows by appending an override. Herdr merges last wins for [ui.sidebar.agents] ?
-	// Safer to add a commented example and the rows. If user already has [ui.sidebar.agents] with rows,
-	// we append a new [ui.sidebar.agents] block that Herdr will treat as override (last wins).
+	// Dedicated bottom-corner: all agents show 4 rows, but only the dedicated Spotify pane has tokens
+	// So the bottom-most agent (Spotify, sorted last via agent.view.set) shows the track/controls.
+	// We avoid rows_by_agent with custom id (invalid) and rely on single-pane tokens + view sorting.
 	block := `
-# Spotify control center — bottom corner under agents pane (added by setup-control-center)
-# Shows now-playing track and controls (pause/prev/next via prefix+ctrl+p/n/o) in sidebar
+# Spotify control center — dedicated bottom space under agents pane (added by setup-control-center)
+# All agents have extra rows for $spotify_track/$spotify_controls, but only the dedicated Spotify agent (bottom) has tokens
 [ui.sidebar.agents]
 rows = [["state_icon", "workspace", "tab"], ["agent"], ["$spotify_track"], ["$spotify_controls"]]
 row_gap = 0

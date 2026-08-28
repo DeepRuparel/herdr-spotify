@@ -1,6 +1,6 @@
 id = "dev.spotify-herdr"
 name = "Spotify for Herdr"
-version = "0.3.1"
+version = "0.3.2"
 min_herdr_version = "0.8.0"
 description = "Control Spotify from Herdr - Go binary, zero-setup play/pause/next/prev/volume (master on Windows) local, search/queue/save gated behind Spotify Web API PKCE"
 platforms = ["linux", "macos", "windows"]
