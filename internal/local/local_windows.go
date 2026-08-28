@@ -11,9 +11,8 @@ import (
 )
 
 var (
-	user32         = syscall.NewLazyDLL("user32.dll")
-	procKeybdEvent = user32.NewProc("keybd_event")
-	procSendInput  = user32.NewProc("SendInput")
+	user32        = syscall.NewLazyDLL("user32.dll")
+	procSendInput = user32.NewProc("SendInput")
 )
 
 const (
@@ -22,59 +21,46 @@ const (
 	vkMediaPrevTrack = 0xB1
 	vkVolumeUp       = 0xAF
 	vkVolumeDown     = 0xAE
+
 	keyEventFExtendedKey = 0x0001
 	keyEventFKeyUp       = 0x0002
+	inputTypeKeyboard    = 1
 )
 
-func sendVK(vk byte) error {
-	// Try SendInput first, fallback to keybd_event
-	// INPUT struct for SendInput (simplified)
-	type keyboardInput struct {
-		WVk         uint16
-		WSscan      uint16
-		DwFlags     uint32
-		Time        uint32
-		DwExtraInfo uintptr
-	}
-	type input struct {
-		Type uint32
-		Ki   keyboardInput
-		_    [8]byte // padding
-	}
-	// prefer keybd_event for simplicity and compatibility
-	r1, _, err := procKeybdEvent.Call(uintptr(vk), 0, uintptr(keyEventFExtendedKey), 0)
-	if r1 == 0 && err != nil && err.Error() != "The operation completed successfully." {
-		// fallback via powershell SendKeys as last resort
-		return sendViaPowerShell(vk)
-	}
-	// key up
-	procKeybdEvent.Call(uintptr(vk), 0, uintptr(keyEventFExtendedKey|keyEventFKeyUp), 0)
-	_ = unsafe.Sizeof(input{})
-	_ = procSendInput
-	return nil
+// keyboardInput mirrors the Win32 KEYBDINPUT struct.
+type keyboardInput struct {
+	WVk         uint16
+	WScan       uint16
+	DwFlags     uint32
+	Time        uint32
+	DwExtraInfo uintptr
 }
 
-func sendViaPowerShell(vk byte) error {
-	var key string
-	switch vk {
-	case vkMediaPlayPause:
-		key = "179" // VK_MEDIA_PLAY_PAUSE
-	case vkMediaNextTrack:
-		key = "176"
-	case vkMediaPrevTrack:
-		key = "177"
-	case vkVolumeUp:
-		key = "175"
-	case vkVolumeDown:
-		key = "174"
-	default:
-		return fmt.Errorf("unknown vk %d", vk)
+// input mirrors the Win32 INPUT struct (union sized for the largest member,
+// MOUSEINPUT, so total size matches what SendInput expects on amd64: 40 bytes).
+type input struct {
+	Type uint32
+	Ki   keyboardInput
+	_    [8]byte // padding to fill out the MOUSEINPUT-sized union
+}
+
+// sendVK sends a virtual-key down+up pair via SendInput, the modern
+// replacement for keybd_event. SendInput reports how many events it
+// actually injected, so a short count is a real, verifiable failure
+// (e.g. blocked by UIPI) — unlike keybd_event, which returns nothing
+// useful to check.
+func sendVK(vk uint16) error {
+	events := []input{
+		{Type: inputTypeKeyboard, Ki: keyboardInput{WVk: vk, DwFlags: keyEventFExtendedKey}},
+		{Type: inputTypeKeyboard, Ki: keyboardInput{WVk: vk, DwFlags: keyEventFExtendedKey | keyEventFKeyUp}},
 	}
-	// WScript.Shell SendKeys with char code
-	ps := fmt.Sprintf("(New-Object -comObject WScript.Shell).SendKeys([char]%s)", key)
-	out, err := exec.Command("powershell", "-NoProfile", "-Command", ps).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("powershell SendKeys failed: %s: %w", strings.TrimSpace(string(out)), err)
+	r1, _, err := procSendInput.Call(
+		uintptr(len(events)),
+		uintptr(unsafe.Pointer(&events[0])),
+		unsafe.Sizeof(events[0]),
+	)
+	if r1 != uintptr(len(events)) {
+		return fmt.Errorf("SendInput injected %d/%d events: %w", r1, len(events), err)
 	}
 	return nil
 }
