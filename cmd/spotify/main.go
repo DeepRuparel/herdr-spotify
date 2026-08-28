@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"herdr-spotify/internal/config"
+	"herdr-spotify/internal/controlcenter"
 	"herdr-spotify/internal/herdrconfig"
 	"herdr-spotify/internal/local"
 	"herdr-spotify/internal/spotify"
@@ -53,6 +54,11 @@ func main() {
 		err = runSetupKeys(args)
 	case "config-path":
 		err = runConfigPath()
+	case "controlcenter":
+		controlcenter.Run()
+		return // never returns
+	case "setup-control-center":
+		err = runSetupControlCenter(args)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %s\n", cmd)
 		usage()
@@ -79,7 +85,9 @@ func usage() {
   pane              interactive TUI (space toggle, n next, p prev, +/- vol, / search*, l queue*, L save*)
   nowplaying        compact now-playing loop
   setup-keys        add keybindings to herdr config.toml (platform independent)
-  config-path       print herdr config.toml path`)
+  config-path       print herdr config.toml path
+  controlcenter     run sidebar control center daemon (reports $spotify_track / $spotify_controls)
+  setup-control-center add control center rows to config + start daemon`)
 }
 
 // helpers
@@ -619,5 +627,48 @@ func runSetupKeys(args []string) error {
 		fmt.Println("✓ herdr server reload-config applied")
 	}
 	_ = path
+	return nil
+}
+
+func runSetupControlCenter(args []string) error {
+	dryRun := len(args) > 0 && (args[0] == "--dry-run" || args[0] == "--check")
+	path, err := herdrconfig.HerdrConfigPath()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Herdr config: %s\n", path)
+	if dryRun {
+		fmt.Println("(dry-run, not writing)")
+		// show what would be added
+		b, _ := os.ReadFile(path)
+		if strings.Contains(string(b), "$spotify_track") {
+			fmt.Println("Control center rows already present")
+		} else {
+			fmt.Println("Would add [ui.sidebar.agents] rows with $spotify_track / $spotify_controls")
+		}
+		return nil
+	}
+	// First ensure keys
+	if _, _, err := herdrconfig.SetupKeys(); err != nil {
+		return err
+	}
+	addedPath, added, err := herdrconfig.SetupControlCenter()
+	if err != nil {
+		return err
+	}
+	if added {
+		fmt.Printf("✓ Added control center rows to %s\n", addedPath)
+		fmt.Println("  - bottom corner under agents pane shows $spotify_track and $spotify_controls (⏮ ⏯ ⏭)")
+	} else {
+		fmt.Printf("✓ Control center rows already present in %s\n", addedPath)
+	}
+	if err := herdrconfig.ReloadConfig(); err != nil {
+		fmt.Printf("Note: herdr server reload-config failed: %v\n", err)
+	} else {
+		fmt.Println("✓ herdr server reload-config applied")
+	}
+	fmt.Println("\nControl center daemon will start on next Herdr restart via [[startup]] controlcenter.")
+	fmt.Println("To start now: herdr plugin action invoke dev.spotify-herdr.controlcenter")
+	fmt.Println("Or run: ./spotify controlcenter &")
 	return nil
 }

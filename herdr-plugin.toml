@@ -1,6 +1,6 @@
 id = "dev.spotify-herdr"
 name = "Spotify for Herdr"
-version = "0.2.3"
+version = "0.3.1"
 min_herdr_version = "0.8.0"
 description = "Control Spotify from Herdr - Go binary, zero-setup play/pause/next/prev/volume (master on Windows) local, search/queue/save gated behind Spotify Web API PKCE"
 platforms = ["linux", "macos", "windows"]
@@ -80,6 +80,24 @@ title = "Spotify: Show Herdr Config Path"
 description = "Print herdr config.toml path (queries HERDR_CONFIG_PATH/herdr --help)"
 contexts = ["workspace"]
 command = ["./spotify", "config-path"]
+
+[[actions]]
+id = "setup-control-center"
+title = "Spotify: Setup Control Center (bottom corner)"
+description = "Add keybindings + sidebar rows for control center under agents pane (queries config path, idempotent)"
+contexts = ["workspace"]
+command = ["./spotify", "setup-control-center"]
+
+[[actions]]
+id = "controlcenter"
+title = "Spotify: Run Control Center Daemon"
+description = "Start bottom-corner control center daemon (reports $spotify_track / $spotify_controls to sidebar)"
+contexts = ["workspace"]
+command = ["./spotify", "controlcenter"]
+
+# Control center daemon — reports now-playing to sidebar tokens every 2s
+[[startup]]
+command = ["./spotify", "controlcenter"]
 
 [[panes]]
 id = "player"

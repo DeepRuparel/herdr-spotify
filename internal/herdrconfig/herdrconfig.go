@@ -152,3 +152,53 @@ func ReloadConfig() error {
 	}
 	return nil
 }
+
+// SetupControlCenter adds sidebar rows for the bottom-corner control center.
+// It is idempotent: if $spotify_track is already in the file, nothing is added.
+// Returns path and whether it added.
+func SetupControlCenter() (path string, added bool, err error) {
+	path, err = HerdrConfigPath()
+	if err != nil {
+		return "", false, err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return path, false, err
+	}
+	b, err := os.ReadFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return path, false, err
+	}
+	existing := ""
+	if b != nil {
+		existing = string(b)
+	}
+	if strings.Contains(existing, "$spotify_track") {
+		return path, false, nil
+	}
+	// Append sidebar config for control center under agents pane (bottom corner)
+	// Keep user's existing rows by appending an override. Herdr merges last wins for [ui.sidebar.agents] ?
+	// Safer to add a commented example and the rows. If user already has [ui.sidebar.agents] with rows,
+	// we append a new [ui.sidebar.agents] block that Herdr will treat as override (last wins).
+	block := `
+# Spotify control center — bottom corner under agents pane (added by setup-control-center)
+# Shows now-playing track and controls (pause/prev/next via prefix+ctrl+p/n/o) in sidebar
+[ui.sidebar.agents]
+rows = [["state_icon", "workspace", "tab"], ["agent"], ["$spotify_track"], ["$spotify_controls"]]
+row_gap = 0
+
+[ui.sidebar.spaces]
+rows = [["state_icon", "workspace"], ["branch", "git_status"], ["$spotify_track"]]
+`
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return path, false, err
+	}
+	defer f.Close()
+	if existing != "" && !strings.HasSuffix(existing, "\n") {
+		f.WriteString("\n")
+	}
+	if _, err := f.WriteString(block); err != nil {
+		return path, false, err
+	}
+	return path, true, nil
+}
